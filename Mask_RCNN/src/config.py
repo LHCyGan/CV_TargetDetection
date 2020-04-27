@@ -1,0 +1,212 @@
+import numpy as np
+
+class Config:
+    """基本配置类。 对于自定义配置，创建一个
+     从此继承并覆盖属性的子类需要更改。"""
+
+    # 命名配置。 例如，“ COCO”，“实验3”等。
+    NAME = None
+
+    # 要使用的GPU数量。 仅使用CPU时，需要将其设置为1
+    GPU_COUNT = 1
+
+    # 每个GPU上要训练的图像数。 一个12GB的GPU通常可以
+    # 处理2张1024x1024px的图像。
+    # 根据您的GPU内存和图像大小进行调整。 使用最高
+    # GPU可以处理以获得最佳性能的编号。
+    IMAGES_PER_GPU = 2
+
+    #    每个时期的训练步骤数
+    #    这不需要匹配训练集的大小。 张量板
+    #    更新在每个时期的末尾保存，因此将其设置为
+    #    较小的数字意味着获得更多的TensorBoard更新。
+    #    验证统计信息也在每个纪元末期进行计算，并且它们
+    #    可能需要一段时间，因此请勿将其设置得太小以避免支出
+    #    花费大量时间进行验证统计。
+    STEPS_PER_EPOCH = 100
+
+    # 在每个训练时期结束时要运行的验证步骤数。
+    # 更大的数字可提高验证统计信息的准确性，但会降低
+    # 减少培训。
+    VALIDATION_STEPS = 50
+
+    # 骨干网架构:
+    # 支持的值是：resnet50，resnet101。
+    BACKBONE = 'resnet101'
+
+    # 仅在您提供可调用的BACKBONE时才有用。 应该计算
+    # FPN金字塔每一层的形状。
+    COMPUTE_BACKBONE_SHAPE = None
+
+    # FPN金字塔每一层的步幅。 这些值
+    # 基于Resnet101主干网。
+    BACKBONE_STRIDES = [4, 8, 16, 32, 64]
+
+    # 分类图中全连接的层的大小
+    FPN_CLASSIF_FC_LAYERS_SIZE = 1024
+
+    # 用于构建要素金字塔的自上而下图层的大小
+    TOP_DOWN_PYRAMID_SIZE = 256
+
+    # 分类类别的数量（包括背景）
+    NUM_CLASSES = 1
+
+    # 方形锚边的长度（以像素为单位）
+    RPN_ANCHOR_SCALES = (32, 64, 128, 256, 512)
+
+    # 每个像元的锚点比率（宽度/高度）
+    # 值为1表示方形锚点，值为0.5表示宽锚点
+    RPN_ANCHOR_RATIOS = [0.5, 1, 2]
+
+    # 锚定步幅
+    # 如果为1，则会在主干特征图中为每个像元创建锚。
+    # 如果为2，则为其他所有单元格创建锚点，依此类推。
+    RPN_ANCHOR_STRIDE = 1
+
+    # 非最大抑制阈值，用于过滤RPN proposal。
+    # 可以在训练过程中增加此值，以产生更多的proposal。
+    RPN_NMS_THRESHOLD = 0.7
+
+    # 每个图像要用于RPN训练的锚点数
+    RPN_TRAIN_ANCHORS_PER_IMAGE = 256
+
+    # 在tf.nn.top_k之后且在非最大抑制之前保持ROI
+    PRE_NMS_LIMIT = 6000
+
+    # 非最大抑制（训练和推理）后保留的ROI
+    POST_NMS_ROIS_TRAINING = 2000
+    POST_NMS_ROIS_INFERENCE = 1000
+
+    # 如果启用，则将实例掩码的大小调整为较小的大小以减小
+    # 内存负载。 在使用高分辨率图像时推荐使用。
+    USE_MINI_MASK = True
+    MINI_MASK_SHAPE = (56, 56)  # (height, width) of the mini-mask
+
+    # I输入图像调整大小
+    #     ＃通常，使用“正方形”调整大小模式进行训练和预测
+    #     ＃，并且在大多数情况下应该可以正常工作。在此模式下，图像缩放
+    #     ＃使得较小的一面是= IMAGE_MIN_DIM，但要确保
+    #     ＃缩放不会使长边> IMAGE_MAX_DIM。然后图像是
+    #     ＃用零填充以使其成为正方形，以便可以放置多个图像
+    #     ＃一批。
+    #     ＃可用的调整大小模式：
+    #     ＃none：不调整大小或填充。不变地返回图像。
+    #     ＃square：调整大小并用零填充以获得正方形图像
+    #     大小为[max_dim，max_dim]的数量。
+    #     ＃pad64：使用零填充宽度和高度，以使其为64的倍数。
+    #     ＃如果IMAGE_MIN_DIM或IMAGE_MIN_SCALE不为None，则按比例缩放
+    #     ＃在填充之前。在此模式下，将忽略IMAGE_MAX_DIM。
+    #     ＃需要64的倍数以确保特征的平滑缩放
+    #     ＃向上和向下映射FPN金字塔的6个级别（2 ** 6 = 64）。
+    #     ＃作物：从图像中随机挑选作物。首先，根据图像缩放
+    #     ＃在IMAGE_MIN_DIM和IMAGE_MIN_SCALE上，然后随机选择
+    #     ＃size IMAGE_MIN_DIM x IMAGE_MIN_DIM。仅可用于训练。
+    #     ＃在此模式下不使用IMAGE_MAX_DIM。
+    IMAGE_RESIZE_MODE = "square"
+    IMAGE_MIN_DIM = 800
+    IMAGE_MAX_DIM = 1024
+    #最小缩放比例。 在MIN_IMAGE_DIM之后检查，可以进一步执行
+#      ＃扩大规模。 例如，如果设置为2，则图像放大到两倍
+#      ＃宽度和高度，甚至更多，即使MIN_IMAGE_DIM不需要它也是如此。
+#      ＃但是，在“正方形”模式下，它可以被IMAGE_MAX_DIM否决。
+    IMAGE_MIN_SCALE = 0
+
+    # 每个图像的颜色通道数。 RGB = 3，灰度= 1，RGB-D = 4
+    #      ＃更改此要求还需要对代码进行其他更改。
+    IMAGE_CHANNEL_COUNT = 3
+
+    # Image mean (RGB)
+    MEAN_PIXEL = np.array([123.7, 116.8, 103.9])
+
+    # Number of ROIs per image to feed to classifier/mask heads
+    # The Mask RCNN paper uses 512 but often the RPN doesn't generate
+    # enough positive proposals to fill this and keep a positive:negative
+    # ratio of 1:3. You can increase the number of proposals by adjusting
+    # the RPN NMS threshold.
+    TRAIN_ROIS_PER_IMAGE = 200
+
+    # Percent of positive ROIs used to train classifier/mask heads
+    ROI_POSITIVE_RATIO = 0.33
+
+    # Pooled ROIs
+    POOL_SIZE = 7
+    MASK_POOL_SIZE = 14
+
+    # Shape of output mask
+    # To change this you also need to change the neural network mask branch
+    MASK_SHAPE = [28, 28]
+
+    # Maximum number of ground truth instances to use in one image
+    MAX_GT_INSTANCES = 100
+
+    # Bounding box refinement standard deviation for RPN and final detections.
+    RPN_BBOX_STD_DEV = np.array([0.1, 0.1, 0.2, 0.2])
+    BBOX_STD_DEV = np.array([0.1, 0.1, 0.2, 0.2])
+
+    # Max number of final detections
+    DETECTION_MAX_INSTANCES = 100
+
+    # Minimum probability value to accept a detected instance
+    # ROIs below this threshold are skipped
+    DETECTION_MIN_CONFIDENCE = 0.7
+
+    # Non-maximum suppression threshold for detection
+    DETECTION_NMS_THRESHOLD = 0.3
+
+    # Learning rate and momentum
+    # The Mask RCNN paper uses lr=0.02, but on TensorFlow it causes
+    # weights to explode. Likely due to differences in optimizer
+    # implementation.
+    LEARNING_RATE = 0.001
+    LEARNING_MOMENTUM = 0.9
+
+    # Weight decay regularization
+    WEIGHT_DECAY = 0.0001
+
+    # Loss weights for more precise optimization.
+    # Can be used for R-CNN training setup.
+    LOSS_WEIGHTS = {
+        "rpn_class_loss": 1.,
+        "rpn_bbox_loss": 1.,
+        "mrcnn_class_loss": 1.,
+        "mrcnn_bbox_loss": 1.,
+        "mrcnn_mask_loss": 1.
+    }
+
+    # Use RPN ROIs or externally generated ROIs for training
+    # Keep this True for most situations. Set to False if you want to train
+    # the head branches on ROI generated by code rather than the ROIs from
+    # the RPN. For example, to debug the classifier head without having to
+    # train the RPN.
+    USE_RPN_ROIS = True
+
+    # Train or freeze batch normalization layers
+    #     None: Train BN layers. This is the normal mode
+    #     False: Freeze BN layers. Good when using a small batch size
+    #     True: (don't use). Set layer in training mode even when predicting
+    TRAIN_BN = False  # Defaulting to False since batch size is often small
+
+    # Gradient norm clipping
+    GRADIENT_CLIP_NORM = 5.0
+
+    def __init__(self):
+        # 设置有效批次数
+        self.BATCH_SIZE = self.IMAGES_PER_GPU * self.GPU_COUNT
+        # 输入图片大小
+        if self.IMAGE_RESIZE_MODE == 'crop':
+            self.IMAGE_SHAPE = np.array([self.IMAGE_MIN_DIM, self.IMAGE_MIN_DIM,
+                                         self.IMAGE_CHANNEL_COUNT])
+        else:
+            self.IMAGE_SHAPE = np.array([self.IMAGE_MAX_DIM, self.IMAGE_MAX_DIM,
+                                         self.IMAGE_CHANNEL_COUNT])
+
+        self.IMAGE_META_SIZE = 1 + 3 + 3 + 4 + 1 + self.NUM_CLASSES
+
+    def display(self):
+        """显示配置值。"""
+        print("\nConfiguration values")
+        for a in dir(self):
+            if not a.startswith("__") and not callable(getattr(self, a)):
+                print("{:30} {}".format(a, getattr(self, a)))
+            print("\n")
+
