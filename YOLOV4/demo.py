@@ -1,16 +1,3 @@
-# -*- coding: utf-8 -*-
-'''
-@Time          : 20/04/25 15:49
-@Author        : huguanghao
-@File          : demo.py
-@Noice         :
-@Modificattion :
-    @Author    :
-    @Time      :
-    @Detail    :
-
-'''
-
 import sys
 import time
 from PIL import Image, ImageDraw
